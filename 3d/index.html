@@ -9,13 +9,17 @@
   <script src="js/three-spritetext.min.js"></script>
   <script src="js/3d-force-graph.min.js"></script>
   <style>
+    html{
+      background: url(./imgs/bg.jpg) no-repeat center;
+      background-size: 100% 100%;
+    }
     .label {
       font-size: 16px;
       color: #fff;
       font-weight: bold;
-      /* background: #fff; */
     }
-    .label span{
+
+    .label span {
       color: yellow;
     }
   </style>
@@ -25,29 +29,6 @@
   <div id="3d-graph"></div>
   <script>
     var focus = false;
-    // var gData = {
-    //   nodes: [{ id: 0, img: "cat.jpg", name: '凯迪' },
-    //   { id: 1, img: "dog.jpg", name: '丹尼' },
-    //   { id: 2, img: "eagle.jpg", name: '座山雕' },
-    //   { id: 3, img: "elephant.jpg", name: '埃德蒙' },
-    //   { id: 4, img: "grasshopper.jpg", name: '卡兹克' },
-    //   { id: 5, img: "octopus.jpg", name: '派大星' },
-    //   { id: 6, img: "owl.jpg", name: '凯迪' },
-    //   { id: 7, img: "panda.jpg", name: '阿宝' },
-    //   { id: 8, img: "squirrel.jpg", name: '苏西' },
-    //   { id: 9, img: "tiger.jpg", name: '佩德罗' },
-    //   { id: 10, img: "whale.jpg", name: '温蒂' }],
-    //   links: [{ source: 1, target: 2 },
-    //   { source: 1, target: 3 },
-    //   { source: 2, target: 4 },
-    //   { source: 2, target: 5 },
-    //   { source: 3, target: 6 },
-    //   { source: 3, target: 7 },
-    //   { source: 3, target: 8 },
-    //   { source: 3, target: 9 },
-    //   { source: 3, target: 10 },
-    //   { source: 3, target: 0 },]
-    // }
 
     var N = 50;
     var objArr = [{ img: "cat.jpg", name: '凯迪' },
@@ -64,11 +45,11 @@
     var gData = {
       nodes: [...Array(N).keys()].map(function (i) {
         var img, name;
-        var idx=Math.floor(Math.random()*objArr.length)
+        var idx = Math.floor(Math.random() * objArr.length)
         var obj = {
           id: i,
-          img:objArr[idx].img,
-          name:objArr[idx].name 
+          img: objArr[idx].img,
+          name: objArr[idx].name
         }
         return obj
       }),
@@ -79,7 +60,6 @@
           target: Math.round(Math.random() * (id - 1))
         }))
     };
-    console.log(gData)
     var controls = { 'DAG Orientation': 'td' };
     var gui = new dat.GUI();
     gui.add(controls, 'DAG Orientation', ['td', 'bu', 'lr', 'rl', 'zout', 'zin', 'radialout', 'radialin', null])
@@ -88,15 +68,16 @@
       controlType: 'trackball',//orbit,fly
     })
       (document.getElementById('3d-graph'))
+      .backgroundColor('rgba(0,0,0,0)')
       .graphData(gData)
-      // .showNavInfo(false)
+      .showNavInfo(false)
       // .dagMode('td') //有向无环图
-      .dagLevelDistance(70) // 层级之间的距离
-      .linkDirectionalParticles(1) //连线粒子设置
+      .dagLevelDistance(20) // 层级之间的距离
+      .linkDirectionalParticles(3) //连线粒子设置
       .linkDirectionalParticleWidth(2)//粒子的大小
       .linkDirectionalArrowLength(4)
       // .linkDirectionalArrowRelPos(0.9)
-      // .linkCurvature(0.25)//线条弯曲程度
+      .linkCurvature(0.25)//线条弯曲程度
       .nodeOpacity(0)
       .nodeLabel(function (obj) {
         console.log(obj)
@@ -130,7 +111,7 @@
       .onNodeClick(function (node) {
         //聚焦
         if (focus) {
-          Graph.cameraPosition({ x: 0, y: 0, z: 400 }, { x: 0, y: 0, z: 0 }, 3000)
+          Graph.cameraPosition({ x: 0, y: 0, z: 700 }, { x: 0, y: 0, z: 0 }, 3000)
           focus = false
         } else {
           focus = true
@@ -146,19 +127,19 @@
       })
       .enableNodeDrag(true);
     Graph.d3Force('charge').strength(-100);
-          Graph.cameraPosition({
-        x: 0,
-        y:0,
-        z: 500
-      });
+    Graph.cameraPosition({
+      x: 0,
+      y: 0,
+      z: 700
+    });
 // 相机旋转
-    // let angle = 0;
+    // var angle = 0;
     // setInterval(() => {
     //   Graph.cameraPosition({
     //     x: 500 * Math.sin(angle),
     //     z: 500 * Math.cos(angle)
     //   });
     //   angle += Math.PI / 300;
-    // }, 5);
+    // }, 10);
   </script>
 </body>
