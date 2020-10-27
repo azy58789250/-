@@ -1,0 +1,164 @@
+<head>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+  <script src="js/three.js"></script>
+  <script src="//unpkg.com/dat.gui"></script>
+  <script src="js/three-spritetext.min.js"></script>
+  <script src="js/3d-force-graph.min.js"></script>
+  <style>
+    .label {
+      font-size: 16px;
+      color: #fff;
+      font-weight: bold;
+      /* background: #fff; */
+    }
+    .label span{
+      color: yellow;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="3d-graph"></div>
+  <script>
+    var focus = false;
+    // var gData = {
+    //   nodes: [{ id: 0, img: "cat.jpg", name: '凯迪' },
+    //   { id: 1, img: "dog.jpg", name: '丹尼' },
+    //   { id: 2, img: "eagle.jpg", name: '座山雕' },
+    //   { id: 3, img: "elephant.jpg", name: '埃德蒙' },
+    //   { id: 4, img: "grasshopper.jpg", name: '卡兹克' },
+    //   { id: 5, img: "octopus.jpg", name: '派大星' },
+    //   { id: 6, img: "owl.jpg", name: '凯迪' },
+    //   { id: 7, img: "panda.jpg", name: '阿宝' },
+    //   { id: 8, img: "squirrel.jpg", name: '苏西' },
+    //   { id: 9, img: "tiger.jpg", name: '佩德罗' },
+    //   { id: 10, img: "whale.jpg", name: '温蒂' }],
+    //   links: [{ source: 1, target: 2 },
+    //   { source: 1, target: 3 },
+    //   { source: 2, target: 4 },
+    //   { source: 2, target: 5 },
+    //   { source: 3, target: 6 },
+    //   { source: 3, target: 7 },
+    //   { source: 3, target: 8 },
+    //   { source: 3, target: 9 },
+    //   { source: 3, target: 10 },
+    //   { source: 3, target: 0 },]
+    // }
+
+    var N = 50;
+    var objArr = [{ img: "cat.jpg", name: '凯迪' },
+    { img: "dog.jpg", name: '丹尼' },
+    { img: "eagle.jpg", name: '座山雕' },
+    { img: "elephant.jpg", name: '埃德蒙' },
+    { img: "grasshopper.jpg", name: '卡兹克' },
+    { img: "octopus.jpg", name: '派大星' },
+    { img: "owl.jpg", name: '凯迪' },
+    { img: "panda.jpg", name: '阿宝' },
+    { img: "squirrel.jpg", name: '苏西' },
+    { img: "tiger.jpg", name: '佩德罗' },
+    { img: "whale.jpg", name: '温蒂' }];
+    var gData = {
+      nodes: [...Array(N).keys()].map(function (i) {
+        var img, name;
+        var idx=Math.floor(Math.random()*objArr.length)
+        var obj = {
+          id: i,
+          img:objArr[idx].img,
+          name:objArr[idx].name 
+        }
+        return obj
+      }),
+      links: [...Array(N).keys()]
+        .filter(id => id)
+        .map(id => ({
+          source: id,
+          target: Math.round(Math.random() * (id - 1))
+        }))
+    };
+    console.log(gData)
+    var controls = { 'DAG Orientation': 'td' };
+    var gui = new dat.GUI();
+    gui.add(controls, 'DAG Orientation', ['td', 'bu', 'lr', 'rl', 'zout', 'zin', 'radialout', 'radialin', null])
+      .onChange(orientation => Graph && Graph.dagMode(orientation));
+    var Graph = ForceGraph3D({
+      controlType: 'trackball',//orbit,fly
+    })
+      (document.getElementById('3d-graph'))
+      .graphData(gData)
+      // .showNavInfo(false)
+      // .dagMode('td') //有向无环图
+      .dagLevelDistance(70) // 层级之间的距离
+      .linkDirectionalParticles(1) //连线粒子设置
+      .linkDirectionalParticleWidth(2)//粒子的大小
+      .linkDirectionalArrowLength(4)
+      // .linkDirectionalArrowRelPos(0.9)
+      // .linkCurvature(0.25)//线条弯曲程度
+      .nodeOpacity(0)
+      .nodeLabel(function (obj) {
+        console.log(obj)
+        var dom = '<p class="label">您选中了：<span>' + obj.name + '</span></p>';
+        return dom
+      })
+      .linkDirectionalParticleSpeed(0.006)
+      .nodeThreeObject(function (node) {
+        var img = node.img
+        var obj = new THREE.Mesh(
+          new THREE.SphereGeometry(7),
+          new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: 0 })
+        );
+
+        // 创建纹理贴图
+        var imgTexture = new THREE.TextureLoader().load(`./imgs/${img}`);
+        var material = new THREE.SpriteMaterial({ map: imgTexture });
+        var sprite = new THREE.Sprite(material);
+        sprite.scale.set(20, 20);
+
+        //创建文字精灵
+        var txt = new SpriteText(node.name);
+        txt.color = '#ffffff';
+        txt.textHeight = 5;
+        txt.center.y = -3;
+        obj.add(txt);
+        obj.add(sprite);
+        return obj;
+      })
+      // 节点的点击事件
+      .onNodeClick(function (node) {
+        //聚焦
+        if (focus) {
+          Graph.cameraPosition({ x: 0, y: 0, z: 400 }, { x: 0, y: 0, z: 0 }, 3000)
+          focus = false
+        } else {
+          focus = true
+          const distance = 50;
+          const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+
+          Graph.cameraPosition(
+            { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
+            node, // lookAt ({ x, y, z })
+            3000  // ms transition duration
+          );
+        }
+      })
+      .enableNodeDrag(true);
+    Graph.d3Force('charge').strength(-100);
+          Graph.cameraPosition({
+        x: 0,
+        y:0,
+        z: 500
+      });
+// 相机旋转
+    // let angle = 0;
+    // setInterval(() => {
+    //   Graph.cameraPosition({
+    //     x: 500 * Math.sin(angle),
+    //     z: 500 * Math.cos(angle)
+    //   });
+    //   angle += Math.PI / 300;
+    // }, 5);
+  </script>
+</body>
